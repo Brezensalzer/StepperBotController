@@ -54,6 +54,8 @@ class nanoLidar:
         self.scan_num = -1
         # sensor offset from center [mm]
         self.offset = 17
+        # angle correction?
+        self.squint = 3.5
         # initialize message queueing
         self.lidarRpc = lidarRpcClient('localhost','x200','bone')
 
@@ -72,7 +74,7 @@ class nanoLidar:
         for line in lines:
             if line != '':
                 (angle, dist_cm, strength) = line.split(',')
-                rad = math.radians(int(angle) + theta)
+                rad = math.radians(int(angle) - self.squint + theta)
                 dist = int(dist_cm)*10 + self.offset
                 # maximum reliable distance: 6000 mm
                 if dist <= 6000:
