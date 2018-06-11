@@ -55,13 +55,32 @@ class nanoLidar:
         # sensor offset from center [mm]
         self.offset = 17
         # angle correction?
-        self.squint = 3.5
+        self.squint = 7.5
         # initialize message queueing
         self.lidarRpc = lidarRpcClient('localhost','x200','bone')
+        # BreezSLAM compatibility
+        self.lidar_data = [()]*360 # 360 elements (distance,quality), indexed by angle
+        self.speed_rpm = 0
 
     def getInfo(self):
         # read firmware information
         return self.lidarRpc.call('info#').decode('utf-8')
+
+    def getScan(self):
+        # BreezySLAM
+        # Returns 360 (distance, quality) tuples.
+        # start 360 degree scan
+        lines = self.lidarRpc.call('scan#').decode('utf-8').split('\r\n')
+        # read scan data
+        for line in lines:
+            if line != '':
+                (angle, dist_cm, strength) = line.split(',')
+                self.lidar_data[angle] = (dist_cm*10,strength)
+
+        return [pair if len(pair) == 2 else (0,0) for pair in self.lidar_data]
+
+    def getRPM(self):
+        return self.speed_rpm
 
     def scan(self, xp, yp, theta):
         # robot position xp, yp in [mm]
