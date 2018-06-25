@@ -23,7 +23,7 @@ class commandRobotResource(resource.Resource):
         # Publish additional data in .well-known/core
         return dict(**super().get_link_description(), title="Send command to robot module")
 
-    self def command(cmd):
+    def command(cmd):
         rc = ""
         result = ""
         robot.write(cmd.encode('utf-8'))
