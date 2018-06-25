@@ -23,7 +23,8 @@ class commandRobotResource(resource.Resource):
         # Publish additional data in .well-known/core
         return dict(**super().get_link_description(), title="Send command to robot module")
 
-    def command(cmd):
+    @staticmethod
+    def __command(cmd):
         rc = ""
         result = ""
         robot.write(cmd.encode('utf-8'))
@@ -34,10 +35,8 @@ class commandRobotResource(resource.Resource):
         return result
 
     async def render_put(self, request):
-        response = self.command(body.decode('utf-8'))
-        print('PUT payload: %s' % request.payload)
-        self.set_content(request.payload)
-        return aiocoap.Message(code=aiocoap.CHANGED, payload=self.content)
+        request.payload = self.__command(request.payload.decode('utf-8')).encode('utf-8')
+        return aiocoap.Message(code=aiocoap.CHANGED, payload=request.payload)
 
 
 class scanLidarResource(resource.Resource):
@@ -76,7 +75,7 @@ class infoLidarResource(resource.Resource):
 
 # logging setup
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("coap-server").setLevel(logging.DEBUG)
+logging.getLogger("coap-server").setLevel(logging.INFO)
 
 def main():
     # Resource tree creation
